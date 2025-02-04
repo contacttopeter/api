@@ -4,13 +4,13 @@ on:
     branches:
       - main
     paths:
-      - www/**/*
+      - www/**
       - Dockerfile
   pull_request:
     branches:
       - main
     paths:
-      - www/**/*
+      - www/**
       - Dockerfile
   
 env:
