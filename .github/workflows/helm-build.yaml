@@ -49,14 +49,9 @@ jobs:
       - name: Versioning
         id: vars
         run: |
-          export tag=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
-          export BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
-          export build_version=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
-          echo "Version: $BUILD_VERSION"
+          BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
+          build_version=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
           echo "BUILD_VERSION=build_version" >> $GITHUB_ENV
-          echo "TAG=tag" >> $GITHUB_ENV
-
-          echo "ZONE=$zone" >> $GITHUB_ENV
 
       - name: Package HELM Chart
         run: helm package ./charts/api --version ${{steps.vars.outputs.BUILD_VERSION}}
