@@ -1,5 +1,5 @@
 # Docker image for the Nginx web server that serves the exchange_rates.html file
-
+#
 # Use the official Nginx image from Docker Hub
 FROM nginx:alpine
 
