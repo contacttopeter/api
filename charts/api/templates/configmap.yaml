@@ -17,9 +17,19 @@ data:
 
         server {
             listen 80;
+            server_name localhost;
+
+            # Serve files from the static folder where the exchange_rates.html is located
             location / {
-                root /usr/share/nginx/html;
+                root /usr/share/nginx/html/static;
                 index exchange_rates.html;
+            }
+
+            # Optionally, add other configurations, e.g., handling errors
+            error_page 404 /404.html;
+            location = /404.html {
+                root /usr/share/nginx/html;
+                internal;
             }
         }
     }
