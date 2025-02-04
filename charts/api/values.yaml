@@ -1,0 +1,5 @@
+image:
+  repository: gcr.io/abiding-envoy-449913-f1/api-web
+  
+fetch:
+  schedule: "0 * * * *"

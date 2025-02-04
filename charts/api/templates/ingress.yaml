@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: exchange-rates-ingress
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.allow-http: "true"
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/managed-certificates: "api-cert"
+    kubernetes.io/ingress.global-static-ip-name: "api-public-address"
+    networking.gke.io/v1beta1.FrontendConfig: "api-frontend-sonfig"
+spec:
+  rules:
+  - host: "api.prochazka.cc"
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: exchange-rates-web
+            port:
+              number: 80
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: api-frontend-sonfig
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: "301"

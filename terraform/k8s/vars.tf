@@ -1,0 +1,19 @@
+variable "gcp_project" {}
+variable "cluster" {}
+variable "region" {}
+variable "zone" {}
+variable "vpc_network" {}
+variable "vpc_subnet" {}
+variable "vpc_subnet_range" {}
+variable "pod_address_range_name" {}
+variable "pod_ip_cidr_range" {}
+variable "master_ipv4_cidr_block" {}
+variable "service_address_range_name" {}
+variable "service_ip_cidr_range" {}
+variable "router_name" {}
+variable "nat_name" {}
+variable "github_runner_token" {}
+variable "chart_version" {}
+variable "apis" {
+  type = list(string)
+}

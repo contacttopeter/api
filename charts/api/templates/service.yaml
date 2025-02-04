@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: exchange-rates-web
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: exchange-rates-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

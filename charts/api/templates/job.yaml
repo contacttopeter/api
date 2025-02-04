@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fetch-exchange-rates
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "{{ .Values.fetch.schedule }}"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          annotations:
+            gke-gcsfuse/volumes: "true"
+        spec:
+          serviceAccountName: ksa
+          restartPolicy: Never
+          containers:
+            - name: fetcher
+              image: badouralix/curl-jq
+              command:
+                - "/bin/sh"
+                - "-c"
+                - "curl -s https://api.coinbase.com/v2/exchange-rates?currency=CZK -o /mnt/data/dataset.json"
+              volumeMounts:
+                - name: exchange-rates-volume
+                  mountPath: /mnt/data
+          volumes:
+            - name: exchange-rates-volume
+              csi:
+                driver: gcsfuse.csi.storage.gke.io
+                volumeAttributes:
+                  bucketName: api-bucket-default
+                  mountOptions: "implicit-dirs"
