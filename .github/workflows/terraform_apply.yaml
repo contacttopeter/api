@@ -55,7 +55,7 @@ jobs:
 
       - name: Register Github Runner
         run: |
-          status=$(curl -s -X GET -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.RUNNER_REGISTRATION_TOKEN }}" "https://api.github.com/orgs/ncrvoyix-swt-hospitality/actions/runners?name=${{ env.CLUSTER }}-bastion" | jq -r '.runners[].status')
+          status=$(curl -s -X GET -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.RUNNER_REGISTRATION_TOKEN }}" "https://api.github.com/orgs/contacttopeter/actions/runners?name=${{ env.CLUSTER }}-bastion" | jq -r '.runners[].status')
           if [[ $status == 'online' ]]; then
             echo "Runner is online"
           else
