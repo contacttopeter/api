@@ -21,4 +21,8 @@ apis = [
   "secretmanager.googleapis.com",
   "container.googleapis.com",
   "storage.googleapis.com",
-  "artifactregistry.googleapis.com"]
+  "artifactregistry.googleapis.com",
+  "cloudresourcemanager.googleapis.com",
+  "compute.googleapis.com",
+  "iam.googleapis.com",
+  ]
