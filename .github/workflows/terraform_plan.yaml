@@ -1,0 +1,125 @@
+name: Terraform Plan GCP
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - '!charts/**'
+      - '!versions/**'
+
+  workflow_dispatch:
+
+jobs:
+  terraform-plan-on-pr:
+    name: terraform-plan
+    runs-on: ubuntu-latest
+
+    outputs:
+      runner_status: ${{ steps.check_runner_status.outputs.runner_status }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set envs
+        shell: bash
+        run: |
+          gcp_project=`cat ./terraform/env.tfvars | grep "gcp_project" | sed 's/^[^"]*"\([^"]*\)".*/\1/'`
+          custer=`cat ./terraform/env.tfvars | grep -w "cluster" | sed 's/^[^"]*"\([^"]*\)".*/\1/'`
+          zone=`cat ./terraform/env.tfvars | grep -w "zone" | sed 's/^[^"]*"\([^"]*\)".*/\1/'`
+          echo "GCP_PROJECT_ID=$gcp_project" >> $GITHUB_ENV
+          echo "CLUSTER=$custer" >> $GITHUB_ENV
+          echo "ZONE=$zone" >> $GITHUB_ENV
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: 1.10.5
+          terraform_wrapper: false
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.API_GOOGLE_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+  
+      - name: Terraform Init GCP
+        id: gcp-init
+        working-directory: ./terraform/gcp
+        run: terraform init -input=false  -backend-config ../state_gcp.state.tf
+
+      - name: Terraform Plan GCP
+        id: gcp-plan
+        working-directory: ./terraform/gcp
+        run: terraform plan -var-file ../env.tfvars -var="github_runner_token=${{ secrets.RUNNER_REGISTRATION_TOKEN }}" -input=false -lock=false -refresh=true
+
+      - name: Check Github Runner
+        id: check_runner_status
+        run: |
+          status=$(curl -s -X GET -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.RUNNER_REGISTRATION_TOKEN }}" "https://api.github.com/contacttopeter/actions/runners?name=${{ env.CLUSTER }}-bastion" | jq -r '.runners[].status')
+          if [[ $status == 'online' ]]; then
+            echo "Runner is online"
+            echo "runner_status=online" >> $GITHUB_OUTPUT
+          else
+            echo "Runner is offline"
+            echo "runner_status=offline" >> $GITHUB_OUTPUT
+          fi
+
+  terraform-plan-k8s:
+    name: terraform-plan-k8s
+    needs: terraform-plan-on-pr
+    runs-on: ["self-hosted", "api"]
+    if: ${{ needs.terraform-plan-on-pr.outputs.runner_status == 'online' }}
+    env:
+      HELM_VERSION: 3.17.0
+      HELM_GCS_VERSION: 0.4.2
+      GCS_BUCKET_NAME: gs://api-bucket-default/helm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set envs
+        shell: bash
+        run: |
+          chart_version=`cat ./versions/helm-chart.yaml | grep "chartVersion" | yq '.chartVersion'`
+          echo "CHART_VERSION=$chart_version" >> $GITHUB_ENV
+
+      - name: Install Helm and Helm GCS Plugin
+        run: |
+          echo "Installing Helm..."
+          wget -q https://get.helm.sh/helm-v${{ env.HELM_VERSION }}-linux-amd64.tar.gz
+          tar -zxf helm-v${HELM_VERSION}-linux-amd64.tar.gz
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+          helm version
+
+          echo "Installing helm-gcs plugin..."
+          helm plugin list | grep -q "gcs" || helm plugin install https://github.com/hayorov/helm-gcs --version ${{ env.HELM_GCS_VERSION }}
+          
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: 1.10.5
+          terraform_wrapper: false
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.API_GOOGLE_CREDENTIALS }}'
+  
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Add HELM Repo
+        run: helm repo add api ${{ env.GCS_BUCKET_NAME }}
+    
+      - name: Terraform Init k8s
+        working-directory: ./terraform/k8s
+        run: terraform init -input=false  -backend-config ../state_k8s.state.tf
+  
+      - name: Terraform Plan k8s
+        working-directory: ./terraform/k8s
+        run: terraform plan -var-file ../env.tfvars -var="chart_version=${{ env.CHART_VERSION }}" -var="github_runner_token=${{ secrets.RUNNER_REGISTRATION_TOKEN }}" -input=false -lock=false -refresh=true
