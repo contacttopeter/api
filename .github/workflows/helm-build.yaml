@@ -19,7 +19,7 @@ jobs:
       HELM_VERSION: 3.17.0
       HELM_GCS_VERSION: 0.4.2
 
-      GCS_BUCKET_NAME: gs://api-default-bucket/helm
+      GCS_BUCKET_NAME: gs://api-bucket-default/helm
       BASE_VERSION: 0.1
 
     steps:
