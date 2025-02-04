@@ -25,6 +25,9 @@ Go to Secret manager and create "docker-credentials" secret with content of terr
 - Create GCP bucket
 gcloud storage buckets create gs://api-bucket-default --location=us-central1
 
+- Enable Uniform Bucket Level Access (UBLA) on your GCS bucket 
+gcloud storage buckets update gs://api-bucket-default --uniform-bucket-level-access
+
 - Enable Cloud Resource Manager API
 gcloud services enable cloudresourcemanager.googleapis.com
 

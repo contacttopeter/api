@@ -21,21 +21,21 @@ spec:
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           volumeMounts:
             - name: exchange-rates-volume
-              mountPath: /usr/share/nginx/html
+              mountPath: /mnt/gcs
               readOnly: true
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
               readOnly: true
       volumes:
-      - name: exchange-rates-volume
-        csi:
-          driver: gcsfuse.csi.storage.gke.io
-          volumeAttributes:
-            bucketName: api-bucket-default
-            mountOptions: "implicit-dirs"
-      - name: nginx-config
-        configMap:
-          name: nginx-config
+        - name: exchange-rates-volume
+          csi:
+            driver: gcsfuse.csi.storage.gke.io
+            volumeAttributes:
+              bucketName: api-bucket-default
+              mountOptions: "implicit-dirs"
+        - name: nginx-config
+          configMap:
+            name: nginx-config
       imagePullSecrets:
         - name: docker-credentials
