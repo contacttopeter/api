@@ -19,6 +19,9 @@ gcloud iam service-accounts keys create terraform-key.json \
 - Take key and create API_GOOGLE_CREDENTIALS GitHub secret in web interface
 cat terraform-key.json
 
+- Add to docker credentials
+Go to Secret manager and create "docker-credentials" secret with content of terraform-key.json
+
 - Create GCP bucket
 gcloud storage buckets create gs://api-bucket-default --location=us-central1
 
