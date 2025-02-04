@@ -1,0 +1,3 @@
+gha-creds-*.json
+helm-*-linux-amd64.tar.gz
+api-*-main.tgz

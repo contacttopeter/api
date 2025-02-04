@@ -1,0 +1,90 @@
+name: Helm Build
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - charts/**/*
+  pull_request:
+    branches:
+      - main
+    paths:
+      - charts/**/*
+
+jobs:
+  build:
+    name: Helm Release
+    runs-on: ubuntu-latest
+    env:
+      HELM_VERSION: 3.17.0
+      HELM_GCS_VERSION: 0.4.2
+
+      GCS_BUCKET_NAME: gs://api-bucket-default/helm
+      BASE_VERSION: 0.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Install Helm and Helm GCS Plugin
+        run: |
+          echo "Installing Helm..."
+          wget -q https://get.helm.sh/helm-v${{ env.HELM_VERSION }}-linux-amd64.tar.gz
+          tar -zxf helm-v${HELM_VERSION}-linux-amd64.tar.gz
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+          helm version
+
+          echo "Installing helm-gcs plugin..."
+          helm plugin install https://github.com/hayorov/helm-gcs --version ${{ env.HELM_GCS_VERSION }}
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.API_GOOGLE_CREDENTIALS }}'
+    
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Versioning
+        id: vars
+        run: |
+          export TAG=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
+          export BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
+          export BUILD_VERSION=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
+          export COMMIT_ID=`git rev-parse HEAD`
+          echo "Version: $BUILD_VERSION"
+          echo "::set-output name=BUILD_VERSION::$(echo $BUILD_VERSION)"
+          echo "::set-output name=HEAD_TAG::$(echo $TAG)"
+          echo "::set-output name=COMMIT_ID::$(echo $COMMIT_ID)"
+
+      - name: Package HELM Chart
+        run: helm package ./charts/api --version ${{steps.vars.outputs.BUILD_VERSION}}
+
+      - name: Init HELM Repo
+        run: helm gcs init ${{ env.GCS_BUCKET_NAME }}
+
+      - name: Add HELM Repo
+        run: helm repo add api ${{ env.GCS_BUCKET_NAME }}
+
+      - name: Upload Chart to HELM Repo
+        if: ${{ github.event_name != 'pull_request' }}
+        run: helm gcs push api-${{steps.vars.outputs.BUILD_VERSION}}.tgz api
+
+      - name: Update helm charts
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          VERSION_FILE='versions/helm-chart.yaml'
+          echo "# This file is managed by Helm Build workflow" > $VERSION_FILE
+          echo "chartVersion: ${{steps.vars.outputs.BUILD_VERSION}}" >> $VERSION_FILE
+          echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
+
+      - name: Commit and push
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          git config --global user.email "api@prochazka.cc"
+          git config --global user.name "Github Actions"
+          git add .
+          git commit -m "Publish helm version build to ${{steps.vars.outputs.BUILD_VERSION}}" || echo "No changes to commit"
+          git push
+        continue-on-error: true

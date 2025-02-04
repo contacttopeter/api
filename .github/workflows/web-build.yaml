@@ -1,0 +1,70 @@
+name: Build-Docker-Web-Image
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - www/**/*
+      - Dockerfile
+  pull_request:
+    branches:
+      - main
+    paths:
+      - www/**/*
+      - Dockerfile
+  
+env:
+  IMAGE_NAME: api-web
+  BASE_VERSION: 0.1
+  GCP_PROJECT_ID: abiding-envoy-449913-f1
+  
+jobs:
+  build_docker:
+    runs-on: ubuntu-latest   
+    steps:   
+      - uses: actions/checkout@v2
+
+      - name: Set vars
+        id: vars
+        run: |
+          export BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
+          export BUILD_VERSION=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
+          echo "Version: $BUILD_VERSION"
+          echo "::set-output name=BUILD_VERSION::$(echo $BUILD_VERSION)"
+          echo "::set-output name=HEAD_TAG::$(echo $TAG)"
+
+      - name: Build docker image
+        run: docker build -t gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{steps.vars.outputs.BUILD_VERSION}} -t gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:latest .
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.API_GOOGLE_CREDENTIALS }}'
+    
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+          
+      - name: Push docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          gcloud auth configure-docker gcr.io
+          docker push gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{steps.vars.outputs.BUILD_VERSION}}
+          docker push gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Update helm charts
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          VERSION_FILE='versions/api-web.yaml'
+          echo "# This file is managed by Helm Build workflow" > $VERSION_FILE
+          echo "image:" >> $VERSION_FILE
+          echo "  tag: ${{steps.vars.outputs.BUILD_VERSION}}" >> $VERSION_FILE
+          echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
+  
+      - name: Commit and push
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          git config --global user.email "api@prochazka.cc"
+          git config --global user.name "Github Actions"
+          git add .
+          git commit -m "Publish helm version build to ${{steps.vars.outputs.BUILD_VERSION}}" || echo "No changes to commit"
+          git push
+        continue-on-error: true
