@@ -1,4 +1,5 @@
 # Terraform env variables
+
 gcp_project                   = "abiding-envoy-449913-f1"
 cluster                       = "api"
 region                        = "us-central1"
