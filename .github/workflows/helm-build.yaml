@@ -19,7 +19,7 @@ jobs:
       HELM_VERSION: 3.17.0
       HELM_GCS_VERSION: 0.4.2
 
-      GCS_BUCKET_NAME: gs://api-bucket-default/helm
+      GCS_BUCKET_NAME: gs://api-default-bucket/helm
       BASE_VERSION: 0.1
 
     steps:
@@ -49,11 +49,14 @@ jobs:
       - name: Versioning
         id: vars
         run: |
-          tag=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
-          BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
-          build_version=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
+          TAG=$(git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g')
+          BRANCH=$(echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g')
+          BUILD_VERSION="${BASE_VERSION}.${GITHUB_RUN_NUMBER}-$BRANCH"
+          COMMIT_ID=$(git rev-parse HEAD)          
           echo "Version: $BUILD_VERSION"
-          echo "BUILD_VERSION=build_version" >> $GITHUB_ENV
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo "HEAD_TAG=$TAG" >> $GITHUB_ENV
+          echo "COMMIT_ID=$COMMIT_ID" >> $GITHUB_ENV
 
       - name: Package HELM Chart
         run: helm package ./charts/api --version ${{steps.vars.outputs.BUILD_VERSION}}
