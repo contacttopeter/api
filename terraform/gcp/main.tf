@@ -51,6 +51,15 @@ resource "google_compute_router" "hec-router" {
   depends_on = [google_compute_subnetwork.vpc-subnet]
 }
 
+data "google_project" "gcp_project" {
+  project_id = var.gcp_project
+}
+
+output "project_number" {
+  value = data.google_project.gcp_project.number
+}
+
+
 resource "google_compute_router_nat" "hec-nat" {
   name                                = var.nat_name
   nat_ip_allocate_option              = "AUTO_ONLY"
@@ -147,14 +156,15 @@ resource "google_service_account_iam_binding" "ksa_to_gsa_binding" {
   members = [
     "serviceAccount:${var.gcp_project}.svc.id.goog[${var.cluster}-env/ksa]"
   ]
+  depends_on = [google_container_node_pool.primary_nodes]
 }
 
 resource "google_project_iam_binding" "storage_object_user" {
-  project = "abiding-envoy-449913-f1"
+  project = ${var.gcp_project}
   role    = "roles/storage.objectUser"
 
   members = [
-    "principal://iam.googleapis.com/projects/1005662020895/locations/global/workloadIdentityPools/${var.gcp_project}.svc.id.goog/subject/ns/api-env/sa/ksa"
+    "principal://iam.googleapis.com/projects/${data.google_project.gcp_project.number}/locations/global/workloadIdentityPools/${var.gcp_project}.svc.id.goog/subject/ns/api-env/sa/ksa"
   ]
 }
 

@@ -22,5 +22,8 @@ cat terraform-key.json
 - Create GCP bucket
 gcloud storage buckets create gs://api-bucket-default --location=us-central1
 
+- Enable Cloud Resource Manager API
+gcloud services enable cloudresourcemanager.googleapis.com
+
 - Generate PAT 
 In your GitHub acount and create RUNNER_REGISTRATION_TOKEN ecret in web interface
