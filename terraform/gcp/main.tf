@@ -150,7 +150,6 @@ resource "google_container_node_pool" "primary_nodes" {
 }
 
 resource "google_service_account_iam_binding" "ksa_to_gsa_binding" {
-  depends_on         = [google_service_account.k8s-sa]
   service_account_id = "projects/${var.gcp_project}/serviceAccounts/k8s-sa@${var.gcp_project}.iam.gserviceaccount.com"
   role               = "roles/iam.workloadIdentityUser"
   members = [
@@ -160,7 +159,7 @@ resource "google_service_account_iam_binding" "ksa_to_gsa_binding" {
 }
 
 resource "google_project_iam_binding" "storage_object_user" {
-  project = ${var.gcp_project}
+  project = "${var.gcp_project}"
   role    = "roles/storage.objectUser"
 
   members = [
