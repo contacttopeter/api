@@ -49,8 +49,10 @@ jobs:
       - name: Versioning
         id: vars
         run: |
+          tag=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
           BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
           build_version=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
+          echo "Version: $BUILD_VERSION"
           echo "BUILD_VERSION=build_version" >> $GITHUB_ENV
 
       - name: Package HELM Chart
