@@ -21,11 +21,16 @@
             padding: 8px;
             text-align: center;
         }
+        #timestamp {
+            margin-bottom: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
 <h1>Current Exchange Rates (CZK)</h1>
+<p id="timestamp">Loading...</p>
 <table id="exchange-rate-table">
     <thead>
         <tr>
@@ -41,14 +46,13 @@
 <script>
     async function fetchExchangeRates() {
         try {
-            const response = await fetch('/data/dataset.json');  // Load the local dataset.json file
+            const response = await fetch('/data/dataset.json');  
             const data = await response.json();
             const rates = data.data.rates;
 
             const tableBody = document.querySelector('#exchange-rate-table tbody');
-            tableBody.innerHTML = '';  // Clear any existing rows
+            tableBody.innerHTML = '';  
 
-            // Loop through the rates and add them to the table
             for (const currency in rates) {
                 if (rates.hasOwnProperty(currency)) {
                     const row = document.createElement('tr');
@@ -69,8 +73,21 @@
         }
     }
 
-    // Fetch data when the page loads
-    window.onload = fetchExchangeRates;
+    async function fetchTimestamp() {
+        try {
+            const response = await fetch('/data/dataset_timestamp.txt'); 
+            const timestamp = await response.text();
+            document.getElementById('timestamp').textContent = `Generated on ${timestamp}`;
+        } catch (error) {
+            console.error('Error fetching timestamp:', error);
+            document.getElementById('timestamp').textContent = 'Timestamp unavailable';
+        }
+    }
+
+    window.onload = function () {
+        fetchExchangeRates();
+        fetchTimestamp();
+    };
 </script>
 
 </body>
