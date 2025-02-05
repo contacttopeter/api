@@ -21,7 +21,7 @@ spec:
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           volumeMounts:
             - name: exchange-rates-volume
-              mountPath: /usr/share/nginx/html
+              mountPath: /usr/share/nginx/html/data
               readOnly: true
             - name: nginx-config
               mountPath: /etc/nginx/nginx.conf

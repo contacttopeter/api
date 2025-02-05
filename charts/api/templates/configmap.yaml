@@ -21,7 +21,7 @@ data:
 
             # Serve files from the static folder where the exchange_rates.html is located
             location / {
-                root /usr/share/nginx/html/static;
+                root /usr/share/nginx/html;
                 index exchange_rates.html;
             }
 
