@@ -1,4 +1,4 @@
-name: Build-Docker-Web-Image
+name: Build-Docker-web-image
 on:
   push:
     branches:

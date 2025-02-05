@@ -41,7 +41,7 @@
 <script>
     async function fetchExchangeRates() {
         try {
-            const response = await fetch('/dataset.json');  // Load the local dataset.json file
+            const response = await fetch('/data/dataset.json');  // Load the local dataset.json file
             const data = await response.json();
             const rates = data.data.rates;
 
