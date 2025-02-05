@@ -52,7 +52,7 @@ jobs:
           tag=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
           branch=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
           build_version=`echo $tag  | sed --expression="s/^$/${{ env.BASE_VERSION }}.${{github.run_number}}-$branch/g"`
-          echo "Version: $build_versionN"
+          echo "Version: $build_version"
           echo "BUILD_VERSION=$build_version" >> $GITHUB_ENV
 
       - name: Package HELM Chart
