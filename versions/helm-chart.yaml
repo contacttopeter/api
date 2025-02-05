@@ -1,2 +1,2 @@
 # This file is managed by Helm Build workflow
-chartVersion: 0.1.12-main
+chartVersion: 0.1.14-main
