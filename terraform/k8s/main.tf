@@ -103,4 +103,6 @@ resource "helm_release" "api_helm" {
   values = [
     "${file("../../versions/api-web.yaml")}"
   ]
+  atomic = true
+  lint   = true
 }
