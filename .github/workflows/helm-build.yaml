@@ -49,17 +49,14 @@ jobs:
       - name: Versioning
         id: vars
         run: |
-          export TAG=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
-          export BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
-          export BUILD_VERSION=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
-          export COMMIT_ID=`git rev-parse HEAD`
-          echo "Version: $BUILD_VERSION"
-          echo "::set-output name=BUILD_VERSION::$(echo $BUILD_VERSION)"
-          echo "::set-output name=HEAD_TAG::$(echo $TAG)"
-          echo "::set-output name=COMMIT_ID::$(echo $COMMIT_ID)"
+          tag=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
+          branch=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
+          build_version=`echo $tag  | sed --expression="s/^$/${{ env.BASE_VERSION }}.${{github.run_number}}-$branch/g"`
+          echo "Version: $build_version"
+          echo "BUILD_VERSION=$build_version" >> $GITHUB_ENV
 
       - name: Package HELM Chart
-        run: helm package ./charts/api --version ${{steps.vars.outputs.BUILD_VERSION}}
+        run: helm package ./charts/api --version ${{env.BUILD_VERSION}}
 
       - name: Init HELM Repo
         run: helm gcs init ${{ env.GCS_BUCKET_NAME }}
@@ -69,14 +66,14 @@ jobs:
 
       - name: Upload Chart to HELM Repo
         if: ${{ github.event_name != 'pull_request' }}
-        run: helm gcs push api-${{steps.vars.outputs.BUILD_VERSION}}.tgz api
+        run: helm gcs push api-${{env.BUILD_VERSION}}.tgz api
 
       - name: Update helm charts
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           VERSION_FILE='versions/helm-chart.yaml'
           echo "# This file is managed by Helm Build workflow" > $VERSION_FILE
-          echo "chartVersion: ${{steps.vars.outputs.BUILD_VERSION}}" >> $VERSION_FILE
+          echo "chartVersion: ${{env.BUILD_VERSION}}" >> $VERSION_FILE
           echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
 
       - name: Commit and push
@@ -85,6 +82,6 @@ jobs:
           git config --global user.email "api@prochazka.cc"
           git config --global user.name "Github Actions"
           git add .
-          git commit -m "Publish helm version build to ${{steps.vars.outputs.BUILD_VERSION}}" || echo "No changes to commit"
+          git commit -m "Publish helm version build to ${{env.BUILD_VERSION}}" || echo "No changes to commit"
           git push
         continue-on-error: true
