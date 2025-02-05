@@ -22,7 +22,7 @@ spec:
               command:
                 - "/bin/sh"
                 - "-c"
-                - "curl -s https://api.coinbase.com/v2/exchange-rates?currency=CZK -o /mnt/data/dataset.json"
+                - "curl -s https://api.coinbase.com/v2/exchange-rates?currency=CZK -o /mnt/data/dataset.json; date +"%d.%m.%Y %H:%M" > /mnt/data/dataset_timestamp.txt"
               volumeMounts:
                 - name: exchange-rates-volume
                   mountPath: /mnt/data
