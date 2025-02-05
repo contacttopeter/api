@@ -52,11 +52,8 @@ jobs:
           export TAG=`git tag --points-at HEAD | sed --expression='s/^v//g' | sed --expression='s/\//-/g'`
           export BRANCH=`echo $GITHUB_REF | sed -r --expression='s/refs\/([a-z]+)\///g' | sed --expression='s/\//-/g'`
           export BUILD_VERSION=`echo $TAG  | sed --expression="s/^$/${BASE_VERSION}.${{github.run_number}}-$BRANCH/g"`
-          export COMMIT_ID=`git rev-parse HEAD`
           echo "Version: $BUILD_VERSION"
-          echo "::set-output name=BUILD_VERSION::$(echo $BUILD_VERSION)"
-          echo "::set-output name=HEAD_TAG::$(echo $TAG)"
-          echo "::set-output name=COMMIT_ID::$(echo $COMMIT_ID)"
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
 
       - name: Package HELM Chart
         run: helm package ./charts/api --version ${{steps.vars.outputs.BUILD_VERSION}}
