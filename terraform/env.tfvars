@@ -14,7 +14,6 @@ service_ip_cidr_range         = "172.26.0.0/17"
 master_ipv4_cidr_block        = "172.26.128.0/28"
 cluster_secondary_range_name  = "pod-address-range"
 services_secondary_range_name = "service-address-range"
-router_name                   = "api-router"
 nat_name                      = "api-nat"
 apis = [
   "iap.googleapis.com",
