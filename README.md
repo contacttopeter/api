@@ -2,7 +2,7 @@
 Purpose of this repository demonstrates the ability to automate the deployment of a dockerized application using a **GitHub CI/CD pipeline**.
 Data from [provider](https://api.coinbase.com/v2/exchange-rates) are taken and exposed [here](https://api.prochazka.cc) for CZK every hour.
 
-## Decision how to do it
+### Decision how to do it
 Biggest concern was which approach to choose. There were two options:
 1. Simplest solution (use serverless model) Cloud Run service and job
 2. Use complex solution which is GKE cluster and Kubernetes resources
