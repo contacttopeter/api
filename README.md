@@ -1,10 +1,10 @@
 ## Goal
 Purpose of this repository is demonstrates the ability to automate the deployment of a dockerized application using a **GitHub CI pipeline**.
-Data from [provider] (https://api.coinbase.com/v2/exchange-rates) are taken and exposed [here](https://api.prochazka.cc)
+Data from [provider](https://api.coinbase.com/v2/exchange-rates) are taken and exposed [here](https://api.prochazka.cc) for CZK every hour.
 
 ### API Deployment Infrastructure
 
-This repository manages the infrastructure and deployment of the API running at [https://api.prochazka.cc/](https://api.prochazka.cc/). The deployment is automated using Terraform, Helm, Docker, and GitHub Actions.
+This repository manages the infrastructure and deployment, which is is automated using Terraform, Helm, Docker, and GitHub Actions.
 
 ## Infrastructure and Tools
 - **Cloud compute**
@@ -23,7 +23,7 @@ This repository manages the infrastructure and deployment of the API running at 
 ## Instructions
 - Use a well-known programming language to implement the application/script logic.
 - Encapsulate the code and its dependencies inside a **Docker container**.
-- Use **IaaC tools (Terraform)** to automate provisioning of cloud resources.
+- Use **Terraform** to automate provisioning of cloud resources.
 - Use **GitHub** to:
   - Store all source code, including this README.md to explain the approach and present the working result.
   - Use **GitHub Actions** to enforce coding practices and automate deployment to the cloud environment.
@@ -56,51 +56,37 @@ This repository manages the infrastructure and deployment of the API running at 
 
 ### 3. CI/CD Pipeline
 The deployment pipeline is automated via **GitHub Actions** and is structured into:
-- **Docker Build & Push:** Builds the API container and pushes it to the registry.
+- **Docker Build & Push:** Builds the custom nginx container and pushes it to the registry.
 - **Helm Deployment:** Updates Kubernetes using the Helm chart.
 - **Terraform Apply:** Updates GCP infrastructure as needed.
-- **Scheduled Deployments:** Runs every hour for automated updates.
 
 ## Deployment Workflow
-1. **Terraform Plan & Apply**:
+**Terraform Plan & Apply**:
+- GitHub Action is triggered by PR to main branch and do Terraform Plan
+- After merge to main branch do Terraform Apply
+- State file is in GCP storage
+- There is possibility to run Terraform action by manual trigger
 
 ## Docker Image Build & Push
-
-To build and push the Docker image, follow these steps:
-
-1. **Build the Docker Image**:
-    ```sh
-    docker build -t your-repo/api:latest .
-    ```
-
-2. **Push the Docker Image to the Registry**:
-    ```sh
-    docker push your-repo/api:latest
-    ```
-
-These steps are automated in the CI/CD pipeline using GitHub Actions. The workflow file `web-build.yaml` defines the process for building and pushing the Docker image.
-
-```sh
-docker build -t your-repo/api:latest .
-docker push your-repo/api:latest
-```
+- GitHub Action is triggered by PR to main branch and do buid docker image
+- After merge to main branch do build and push to Docker registry
+- Including this process is versioning of image
 
 ### Helm Chart Deployment
+- GitHub Action is triggered by PR to main branch and do build helm package
+- After merge to main branch do build and push to Storage
+- Including this process is versioning of helm package
 
-```sh
-helm upgrade --install api charts/api/ -f charts/api/values.yaml
-```
 
-### Security & Networking
-
-- **Ingress TLS** is managed via Cloudflare and GCP.
+### 4. Security & Networking
+- **Ingress TLS** is managed via GCP.
 - **RBAC** is configured for Kubernetes security.
 
-### Monitoring & Logging
-
+### 5. Monitoring & Logging
 - TBD
 
-### Manual Steps
+### 6. Manual Steps
+- There is still couple manual steps which needs to be done when you will get clean GCP projects. Some of them can be covered by Init Github Actions which will be run just once on the initialization phase.
 
 1. **Create GCP Service Account for Terraform:**
     ```sh
