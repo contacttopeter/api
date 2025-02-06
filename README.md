@@ -6,7 +6,7 @@ Data from [provider](https://api.coinbase.com/v2/exchange-rates) are taken and e
 Biggest concern was which approach to choose. There were two options:
 1. Simplest solution (use serverless model) Cloud Run service and job
 2. Use complex solution which is GKE cluster and Kubernetes resources
-- I have chosen second option to be able show more complex solution which will be similar to real situation.
+### I have chosen second option to be able show more complex solution which will be similar to real situation.
 
 ### API Deployment Infrastructure
 This repository manages the infrastructure and deployment, which is is automated using Terraform, Helm, Docker, and GitHub Actions.
