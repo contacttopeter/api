@@ -8,7 +8,7 @@ Biggest concern was which approach to choose. There were two options:
 2. Use complex solution which is GKE cluster and Kubernetes resources
 ### I have chosen second option to be able show more complex solution which will be similar to real situation.
 
-### API Deployment Infrastructure
+#### API Deployment Infrastructure
 This repository manages the infrastructure and deployment, which is is automated using Terraform, Helm, Docker, and GitHub Actions.
 
 ## Infrastructure and Tools
