@@ -40,6 +40,7 @@ This repository manages the infrastructure and deployment, which is is automated
 ├── .github/workflows/      # CI/CD Pipelines (Terraform, Helm, Docker)
 ├── charts/api/             # Helm Chart for Kubernetes deployment
 ├── terraform/              # Terraform configurations for GCP infrastructure
+├── www/                    # Frontend code
 ├── Dockerfile              # Docker build configuration
 ├── README.md               # Project documentation
 └── other config files...
@@ -171,7 +172,7 @@ This needs to be taken just like skeleton how it can work but there are log of t
 3. **Use a Dedicated Build System for Docker**
    - Utilize **Google Cloud Build** for faster, managed builds instead of running them inside GitHub Actions.
 4. **Automated Rollbacks with Health Checks**
-   - Use **Argo Rollouts** for **Canary Deployments** with automated rollbacks based on failure conditions.
+   - Use cabary or blue/green strategy with automated rollbacks based on failure conditions.
 5. **Dependency Management Automation**
    - Implement **Dependabot** or **Renovate** to keep Docker, Helm, and Terraform dependencies updated.
 
