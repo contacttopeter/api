@@ -1,5 +1,5 @@
 ## Goal
-Purpose of this repository is demonstrates the ability to automate the deployment of a dockerized application using a **GitHub CI/CD pipeline**.
+Purpose of this repository demonstrates the ability to automate the deployment of a dockerized application using a **GitHub CI/CD pipeline**.
 Data from [provider](https://api.coinbase.com/v2/exchange-rates) are taken and exposed [here](https://api.prochazka.cc) for CZK every hour.
 
 ### API Deployment Infrastructure
@@ -59,19 +59,19 @@ The deployment pipeline is automated via **GitHub Actions** and is structured in
 - **Helm Deployment:** Updates Kubernetes using the Helm chart.
 - **Terraform Apply:** Updates GCP infrastructure as needed.
 
-## Deployment Workflow
+#### Deployment Workflow
 **Terraform Plan & Apply**:
 - GitHub Action is triggered by PR to main branch and do Terraform Plan.
 - After merge to main branch do Terraform Apply.
 - State files are in GCP storage.
 - There is possibility to run Terraform action by manual trigger.
 
-## Docker Image Build & Push
-- GitHub Action is triggered by PR to main branch and do buid docker image.
+#### Docker Image Build & Push
+- GitHub Action is triggered by PR to main branch and do build docker image.
 - After merge to main branch do build and push to Docker registry.
 - New version of docker image is stored in /versions/api-web.yaml
 
-### Helm Chart Deployment
+#### Helm Chart Deployment
 - GitHub Action is triggered by PR to main branch and do build helm package
 - After merge to main branch do build and push to Storage
 - New version of helm chart is stored in /versions/helm-chart.yaml
@@ -82,7 +82,7 @@ The deployment pipeline is automated via **GitHub Actions** and is structured in
 - **RBAC** is configured for Kubernetes security.
 
 ### 6. Manual Steps
-- There is still couple manual steps which needs to be done when you will get clean GCP projects. Some of them can be covered by Init Github Actions which will be run just once on the initialization phase.
+- There are still couple manual steps which needs to be done when you will get clean GCP projects. Some of them can be covered by Init GitHub Actions which will be run just once on the initialization phase.
 
 1. **Create GCP Service Account for Terraform:**
     ```sh
@@ -131,29 +131,29 @@ The deployment pipeline is automated via **GitHub Actions** and is structured in
     - In your GitHub account, create `RUNNER_REGISTRATION_TOKEN` secret in the web interface.
 
 ## What needs to be done?
-This needs to be taken just like sceleton how it can works but there are log of things which needs to be done.
+This needs to be taken just like skeleton how it can work but there are log of things which needs to be done.
 
 ## Infrastructure
-- For now everything is on one GKE node, we should start use autoscaling incling nodes and pods.
-- Good aproach can be using some servis mesh like Istio and use custom metric (like request total) for autoscaling or the pods.
-- If our application will get more complicated we should consider to use Gateway API instead of Ingress which brings more setting.
+- For now, everything is on one GKE node, we should start use autoscaling including nodes and pods.
+- Good approach can be using some service mesh like Istio and use custom metric (like request total) for autoscaling or the pods.
+- If our application will get more complicated, we should consider to use Gateway API instead of Ingress which brings more setting.
 - In cron job we use third party image like badouralix/curl-jq we need to create some our own image.
-- We should consider to use containerized self hosted Github runners to save cost (VM GitHub runner can be turned off and be used just on demand like bastion server) good approcah is use Actions Runner Controller https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller
-- Container registry will be depricated, we shoud use Artifact registry instad of it.
-- We use one Google storage gs://api-bucket-default for everything it should be devided by purppose (Terrafrom, Helm package, Data,...).
+- We should consider to use containerized self hosted GitHub runners to save cost (VM GitHub runner can be turned off and be used just on demand like bastion server) good approach is use Actions Runner Controller https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller
+- Container registry will be deprecated, we should use Artifact registry instead of it.
+- We use one Google storage gs://api-bucket-default for everything it should be divided by purpose (Terraform, Helm package, Data, ...).
 
 ## CI/CD Pipeline + code quality
-- We need to also thing about branching strategy (for example, Trunk based, Release branch, Environment branch,...). How offen we want to deploy? How good we are in testing? We need to consider and use strategy according our needs.
-- Consider to devide repositories to more than one to have easier contorol. It could be for Code + Docker build, Helm + chart package build, Configuration, Terraform.
-- If we will have more than one environment we can start to use [helmfile](https://github.com/helmfile/helmfile) for better env versioning.
-- Instead of Github Actions which deploy helm we can consider some orchestration tool like ArgoCD or Flux.
-- We should start to use testing our code before creating image by some Whitesource, Gitleaks, Sonarqube, ...
+- We need to also thing about branching strategy (for example, Trunk based, Release branch, Environment branch, ...). How often we want to deploy? How good we are in testing? We need to consider and use strategy according to our needs.
+- Consider dividing repositories to more than one to have easier control. It could be for Code + Docker build, Helm + chart package build, Configuration, Terraform.
+- If we will have more than one environment, we can start to use [helmfile](https://github.com/helmfile/helmfile) for better env versioning.
+- Instead of GitHub Actions which deploy helm we can consider some orchestration tool like ArgoCD or Flux.
+- We should start to use testing our code before creating image by some Whitesource, Gitleaks, SonarQube, ...
 - If we want to test after deployment, we should consider if we are able to do testing in Canary or Blue Green deployment strategy.
 
 ## Security
-- We should use some reverse proxy like CloudFlare which will increase our security.
-- Using CloudArmor we can get protection against attacks like DDos, XXS, SQLi.
-- Setting of SSL policy we can denied old TLS version and weak ciphers.
+- We should use some reverse proxy like Cloudflare which will increase our security.
+- Using Cloud Armor, we can get protection against attacks like DDos, XXS, SQLi.
+- Setting of SSL policy, we can denied old TLS version and weak ciphers.
 - In firewall we need enable just ports what we need.
-- IAM grant lowest privilages to users and service accounts as possible.
+- IAM grant lowest privileges to users and service accounts as possible.
 - Do scan docker images against vulnerability
