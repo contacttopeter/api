@@ -12,7 +12,7 @@ resource "google_project_service" "api" {
   disable_dependent_services = true
 }
 
-resource "google_compute_global_address" "hec-gw" {
+resource "google_compute_global_address" "api-gw" {
   name         = "${var.cluster}-public-address"
   project      = var.gcp_project
   description  = "External IP for the API"
@@ -44,7 +44,7 @@ resource "google_compute_subnetwork" "vpc-subnet" {
   }
 }
 
-resource "google_compute_router" "hec-router" {
+resource "google_compute_router" "api-router" {
   name       = var.router_name
   network    = google_compute_network.vpc-network.id
   region     = google_compute_subnetwork.vpc-subnet.region
@@ -60,10 +60,10 @@ output "project_number" {
 }
 
 
-resource "google_compute_router_nat" "hec-nat" {
+resource "google_compute_router_nat" "api-nat" {
   name                                = var.nat_name
   nat_ip_allocate_option              = "AUTO_ONLY"
-  router                              = google_compute_router.hec-router.name
+  router                              = google_compute_router.api-router.name
   region                              = google_compute_subnetwork.vpc-subnet.region
   min_ports_per_vm                    = 4096
   source_subnetwork_ip_ranges_to_nat  = "ALL_SUBNETWORKS_ALL_IP_RANGES"
@@ -73,7 +73,7 @@ resource "google_compute_router_nat" "hec-nat" {
     enable = true
     filter = "ALL"
   }
-  depends_on = [google_compute_router.hec-router]
+  depends_on = [google_compute_router.api-router]
 }
 
 resource "google_service_account" "cluster-sa" {
