@@ -144,7 +144,7 @@ This needs to be taken just like skeleton how it can work but there are log of t
    - Deploy workloads in multiple GKE clusters across different regions.
    - Use **Google Cloud Load Balancer** to route traffic dynamically.
 2. **Workload Identity for Kubernetes Service Accounts**
-   - Reduce the need for GCP IAM keys by using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
+   - Reduce the need for GCP IAM keys by using Workload Identity
 3. **Service Mesh with Istio or Linkerd**
    - Implement **Istio** for better traffic routing, observability, and security.
    - Enable **mTLS** for secure inter-service communication.
