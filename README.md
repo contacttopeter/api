@@ -2,6 +2,12 @@
 Purpose of this repository demonstrates the ability to automate the deployment of a dockerized application using a **GitHub CI/CD pipeline**.
 Data from [provider](https://api.coinbase.com/v2/exchange-rates) are taken and exposed [here](https://api.prochazka.cc) for CZK every hour.
 
+## Decision
+Biggest concern was which approach to choose. There were two options:
+1. Simplest solution (use serverless model) Cloud Run service and job
+2. Use complex solution which is GKE cluster and Kubernetes resources
+I have chosen second option to be able show more complex solution which will be similar to real situation.
+
 ### API Deployment Infrastructure
 This repository manages the infrastructure and deployment, which is is automated using Terraform, Helm, Docker, and GitHub Actions.
 
@@ -133,27 +139,59 @@ The deployment pipeline is automated via **GitHub Actions** and is structured in
 ## What needs to be done?
 This needs to be taken just like skeleton how it can work but there are log of things which needs to be done.
 
-## Infrastructure
-- For now, everything is on one GKE node, we should start use autoscaling including nodes and pods.
-- Good approach can be using some service mesh like Istio and use custom metric (like request total) for autoscaling or the pods.
-- If our application will get more complicated, we should consider to use Gateway API instead of Ingress which brings more setting.
-- In cron job we use third party image like badouralix/curl-jq we need to create some our own image.
-- We should consider to use containerized self hosted GitHub runners to save cost (VM GitHub runner can be turned off and be used just on demand like bastion server) good approach is use Actions Runner Controller https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller
-- Container registry will be deprecated, we should use Artifact registry instead of it.
-- We use one Google storage gs://api-bucket-default for everything it should be divided by purpose (Terraform, Helm package, Data, ...).
+## Infrastructure Enhancements
+1. **Multi-Region Deployment for High Availability**
+   - Deploy workloads in multiple GKE clusters across different regions.
+   - Use **Google Cloud Load Balancer** to route traffic dynamically.
+2. **Workload Identity for Kubernetes Service Accounts**
+   - Reduce the need for GCP IAM keys by using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
+3. **Service Mesh with Istio or Linkerd**
+   - Implement **Istio** for better traffic routing, observability, and security.
+   - Enable **mTLS** for secure inter-service communication.
+4. **Kubernetes Autoscaling Optimization**
+   - Implement **Horizontal Pod Autoscaler (HPA)** based on CPU, memory, or custom application metrics.
+   - Use **Cluster Autoscaler** to scale GKE nodes dynamically.
+5. **Database & Caching Layer**
+   - Consider **Cloud SQL** (managed PostgreSQL/MySQL) for structured data.
+   - Use **Redis or Memcached** as a caching layer to reduce API response times.
+6. **Monitoring & Logging Improvements**
+   - Implement **OpenTelemetry** for better distributed tracing.
+   - Use **Grafana Loki** for logging to replace Stackdriver/Cloud Logging.
+   - Set up **Alerting in Prometheus** for abnormal behavior detection.
+7. **Use Terraform Cloud or Atlantis for Automated Terraform Execution**
+   - Terraform state management and execution can be automated using **Terraform Cloud**.
+8. **Artifact Registry Instead of Container Registry**
+   - Since **Container Registry is deprecated**, migrate to **Artifact Registry** for storing container images.
 
-## CI/CD Pipeline + code quality
-- We need to also thing about branching strategy (for example, Trunk based, Release branch, Environment branch, ...). How often we want to deploy? How good we are in testing? We need to consider and use strategy according to our needs.
-- Consider dividing repositories to more than one to have easier control. It could be for Code + Docker build, Helm + chart package build, Configuration, Terraform.
-- If we will have more than one environment, we can start to use [helmfile](https://github.com/helmfile/helmfile) for better env versioning.
-- Instead of GitHub Actions which deploy helm we can consider some orchestration tool like ArgoCD or Flux.
-- We should start to use testing our code before creating image by some Whitesource, Gitleaks, SonarQube, ...
-- If we want to test after deployment, we should consider if we are able to do testing in Canary or Blue Green deployment strategy.
+## CI/CD Pipeline Enhancements
+1. **ArgoCD or Flux for GitOps Deployment**
+   - Replace Helm deployments in GitHub Actions with **ArgoCD** or **FluxCD** for declarative, automated deployments.
+2. **Feature Branch Deployments with Preview Environments**
+   - Deploy separate environments per feature branch using **VCluster** or ephemeral GKE namespaces.
+3. **Use a Dedicated Build System for Docker**
+   - Utilize **Google Cloud Build** for faster, managed builds instead of running them inside GitHub Actions.
+4. **Automated Rollbacks with Health Checks**
+   - Use **Argo Rollouts** for **Canary Deployments** with automated rollbacks based on failure conditions.
+5. **Dependency Management Automation**
+   - Implement **Dependabot** or **Renovate** to keep Docker, Helm, and Terraform dependencies updated.
 
-## Security
-- We should use some reverse proxy like Cloudflare which will increase our security.
-- Using Cloud Armor, we can get protection against attacks like DDos, XXS, SQLi.
-- Setting of SSL policy, we can denied old TLS version and weak ciphers.
-- In firewall we need enable just ports what we need.
-- IAM grant lowest privileges to users and service accounts as possible.
-- Do scan docker images against vulnerability
+## Security Enhancements
+1. **Cloud Armor & WAF Rules**
+   - Use **Google Cloud Armor** to block malicious traffic.
+   - Enable **Rate Limiting** to prevent API abuse.
+2. **Cloudflare Proxy for Enhanced DDoS Protection**
+   - Route traffic through **Cloudflare** to reduce attack surface.
+3. **Least Privilege IAM Policies**
+   - Regularly audit IAM roles to enforce **least privilege**.
+4. **TLS Security Hardening**
+   - Enforce **TLS 1.2+ only**, disable weak ciphers.
+5. **Docker Image Security Scanning**
+   - Enable **GCP's Container Analysis** to scan Docker images before deployment.
+
+## Code Quality Enhancements
+1. **Static Code Analysis**
+   - Use **SonarQube, ESLint, or Bandit** to analyze Terraform, Bash, and Python code.
+2. **Unit & Integration Testing Before Deployment**
+   - Write **unit tests for data extraction logic** and run them before building a Docker image.
+3. **Mutation Testing for More Robust Code**
+   - Use **mutation testing frameworks** to detect missing test cases.
